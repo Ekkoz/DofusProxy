@@ -5,6 +5,7 @@ import socket
 from threading import Thread
 
 from src.PacketParser import PacketParser
+from src.DatabaseManager import DatabaseManager
 
 class GameRemoteClient(Thread):
     
@@ -28,6 +29,7 @@ class GameRemoteClient(Thread):
         newPacket = self.parser.getPacket()
         while newPacket:
             print("[+] [GAME] << " + newPacket)
+            DatabaseManager().addPacket(0, newPacket)
             data = bytearray(newPacket.encode("utf-8"))
             data += b'\x00'
             if self.localClient.send(data) == False:

@@ -4,6 +4,7 @@ from threading import Thread
 
 from src.RealmRemoteClient import RealmRemoteClient
 from src.PacketParser import PacketParser
+from src.DatabaseManager import DatabaseManager
 
 class RealmLocalClient(Thread):
     
@@ -26,6 +27,7 @@ class RealmLocalClient(Thread):
         newPacket = self.parser.getPacket()
         while newPacket:
             print("[+] [REALM] >> " + newPacket)
+            DatabaseManager().addPacket(1, newPacket)
             data = bytearray(newPacket.encode("utf-8"))
             data += b'\x00'
             if self.remoteServer.send(data) == False:

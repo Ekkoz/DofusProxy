@@ -8,6 +8,7 @@ from src.GameLocalClient import GameLocalClient
 
 from src.PacketParser import PacketParser
 from src.CipherManager import CipherManager
+from src.DatabaseManager import DatabaseManager
 
 class RealmRemoteClient(Thread):
     
@@ -48,6 +49,7 @@ class RealmRemoteClient(Thread):
         newPacket = self.parser.getPacket()
         while newPacket:
             print("[+] [REALM] << " + newPacket)
+            DatabaseManager().addPacket(0, newPacket)
             newPacket = self.parsePacket(newPacket)
             data = bytearray(newPacket.encode("utf-8"))
             data += b'\x00'
