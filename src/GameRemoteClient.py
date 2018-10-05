@@ -6,6 +6,7 @@ from threading import Thread
 
 from src.PacketParser import PacketParser
 from src.DatabaseManager import DatabaseManager
+from src.Logger import Logger
 
 class GameRemoteClient(Thread):
     
@@ -28,13 +29,13 @@ class GameRemoteClient(Thread):
     def processPackets(self):
         newPacket = self.parser.getPacket()
         while newPacket:
-            print("[+] [GAME] << " + newPacket)
+            Logger.debug("[GAME] << " + newPacket)
             DatabaseManager().addPacket(0, newPacket)
             data = bytearray(newPacket.encode("utf-8"))
             data += b'\x00'
             if self.localClient.send(data) == False:
                 self.socket.close()
-                print("[+] [GAME] Server disconnected")
+                Logger.info("[GAME] Server disconnected")
                 return (False)
             newPacket = self.parser.getPacket()
         return (True)
@@ -50,4 +51,4 @@ class GameRemoteClient(Thread):
                 return (False)
             recvData = self.socket.recv(4096)
         self.connected = False
-        print("[+] [GAME] Server disconnected")
+        Logger.info("[GAME] Server disconnected")

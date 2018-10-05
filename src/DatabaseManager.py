@@ -5,6 +5,8 @@ import sqlite3
 import queue
 import datetime
 
+from src.Logger import Logger
+
 def singleton(cls):
     instance = None
     def ctor(*args, **kwargs):
@@ -20,7 +22,6 @@ class DatabaseManager(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
-        print("init")
         self.condition = threading.Condition()
         self.tasks = queue.Queue()
         self.running = False
@@ -39,10 +40,10 @@ class DatabaseManager(threading.Thread):
             self.condition.notifyAll()
 
     def run(self):
-        print("[+] [DB] Starting the database...")
+        Logger.info("[DB] Starting the database...")
         self.db = sqlite3.connect('data.db')
         self.createDb()
-        print("[+] [DB] Waiting for data")
+        Logger.info("[DB] Waiting for data")
         while True:
             with self.condition:
                 self.condition.wait()

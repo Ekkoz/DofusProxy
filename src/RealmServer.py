@@ -3,6 +3,7 @@
 import socket
 
 from src.RealmLocalClient import RealmLocalClient
+from src.Logger import Logger
 
 class RealmServer:
     
@@ -14,17 +15,17 @@ class RealmServer:
         try:
             self.socket.bind(("127.0.0.1", 12345))
         except socket.error as msg:
-            print('[-] [REALM] Bind failed. Error : ' + str(sys.exc_info()))
+            Logger.error('[REALM] Bind failed. Error : ' + str(sys.exc_info()))
             return (False)
         
         self.socket.listen(16)
 
-        print("[+] [REALM] Listening on port 12345...")
+        Logger.info("[REALM] Listening on port 12345...")
 
         while True:
             fd, addr = self.socket.accept()
             ip, port = str(addr[0]), str(addr[1])
-            print('[+] [REALM] New incomming connection: ' + ip + ':' + port)
+            Logger.info('[REALM] New incomming connection: ' + ip + ':' + port)
 
             newClient = RealmLocalClient(fd, addr, ip, port)
             newClient.start()

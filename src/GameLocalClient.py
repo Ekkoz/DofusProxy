@@ -7,6 +7,7 @@ from threading import Thread
 from src.GameRemoteClient import GameRemoteClient
 from src.PacketParser import PacketParser
 from src.DatabaseManager import DatabaseManager
+from src.Logger import Logger
 
 class GameLocalClient(Thread):
     
@@ -32,7 +33,7 @@ class GameLocalClient(Thread):
         try:
             self.listeningSocket.bind(("127.0.0.1", 0))
         except socket.error as msg:
-            print('[-] [GAME] Bind failed. Error : ' + str(sys.exc_info()))
+            Logger.error('[GAME] Bind failed. Error : ' + str(sys.exc_info()))
             return (False)
         
         self.listeningSocket.listen(1)
@@ -46,23 +47,23 @@ class GameLocalClient(Thread):
     def processPackets(self):
         newPacket = self.parser.getPacket()
         while newPacket:
-            print("[+] [GAME] >> " + newPacket)
+            Logger.debug("[GAME] >> " + newPacket)
             DatabaseManager().addPacket(1, newPacket)
             data = bytearray(newPacket.encode("utf-8"))
             data += b'\x00'
             if self.remoteServer.send(data) == False:
                 self.fd.close()
-                print("[+] [GAME] Client " + self.ip + ":" + self.port + " disconnected")
+                Logger.info("[GAME] Client " + self.ip + ":" + self.port + " disconnected")
                 return (False)
             newPacket = self.parser.getPacket()
         return (True)
 
     def run(self):
-        print("[+] [GAME] Listening on " + self.getListeningIp() + ":" + str(self.getListeningPort()) + "...")
+        Logger.info("[GAME] Listening on " + self.getListeningIp() + ":" + str(self.getListeningPort()) + "...")
 
         self.fd, self.addr = self.listeningSocket.accept()
         self.ip, self.port = str(self.addr[0]), str(self.addr[1])
-        print('[+] [GAME] New incomming connection: ' + self.ip + ':' + self.port)
+        Logger.info('[GAME] New incomming connection: ' + self.ip + ':' + self.port)
 
         self.listeningSocket.close()
 
@@ -76,4 +77,4 @@ class GameLocalClient(Thread):
                 return (False)
             recvData = self.fd.recv(4096)
         self.connected = False
-        print("[+] [GAME] Client " + self.ip + ":" + self.port + " disconnected")
+        Logger.info("[GAME] Client " + self.ip + ":" + self.port + " disconnected")

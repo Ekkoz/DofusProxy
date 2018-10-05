@@ -9,6 +9,7 @@ from src.GameLocalClient import GameLocalClient
 from src.PacketParser import PacketParser
 from src.CipherManager import CipherManager
 from src.DatabaseManager import DatabaseManager
+from src.Logger import Logger
 
 class RealmRemoteClient(Thread):
     
@@ -28,7 +29,7 @@ class RealmRemoteClient(Thread):
 
     def parsePacket(self, packet):
         if len(packet) > 3 and packet[0] == 'A' and packet[1] == 'X' and packet[2] == 'K':
-            print("[+] [REALM] onSelectServer packet detected!")
+            Logger.debug("[REALM] onSelectServer packet detected!")
             encryptedIp = packet[3:11]
             encryptedPort = packet[11:14]
             ticket = packet[14:]
@@ -39,7 +40,7 @@ class RealmRemoteClient(Thread):
             newEncryptedIp = CipherManager.encryptIp(newGameClient.getListeningIp())
             newEncryptedPort = CipherManager.encryptPort(newGameClient.getListeningPort())
             newPacket = "AXK" + newEncryptedIp + newEncryptedPort + ticket
-            print("[+] [REALM] Replacing packet '" + packet + "' with packet '" + newPacket + "'")
+            Logger.debug("[REALM] Replacing packet '" + packet + "' with packet '" + newPacket + "'")
             newGameClient.start()
             return (newPacket)
         return (packet)
@@ -48,14 +49,14 @@ class RealmRemoteClient(Thread):
     def processPackets(self):
         newPacket = self.parser.getPacket()
         while newPacket:
-            print("[+] [REALM] << " + newPacket)
+            Logger.debug("[REALM] << " + newPacket)
             DatabaseManager().addPacket(0, newPacket)
             newPacket = self.parsePacket(newPacket)
             data = bytearray(newPacket.encode("utf-8"))
             data += b'\x00'
             if self.localClient.send(data) == False:
                 self.socket.close()
-                print("[+] [REALM] Server disconnected")
+                Logger.info("[REALM] Server disconnected")
                 return (False)
             newPacket = self.parser.getPacket()
         return (True)
@@ -71,4 +72,4 @@ class RealmRemoteClient(Thread):
                 return (False)
             recvData = self.socket.recv(4096)
         self.connected = False
-        print("[+] [REALM] Server disconnected")
+        Logger.info("[REALM] Server disconnected")

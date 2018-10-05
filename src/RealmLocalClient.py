@@ -5,6 +5,7 @@ from threading import Thread
 from src.RealmRemoteClient import RealmRemoteClient
 from src.PacketParser import PacketParser
 from src.DatabaseManager import DatabaseManager
+from src.Logger import Logger
 
 class RealmLocalClient(Thread):
     
@@ -26,13 +27,13 @@ class RealmLocalClient(Thread):
     def processPackets(self):
         newPacket = self.parser.getPacket()
         while newPacket:
-            print("[+] [REALM] >> " + newPacket)
+            Logger.debug("[REALM] >> " + newPacket)
             DatabaseManager().addPacket(1, newPacket)
             data = bytearray(newPacket.encode("utf-8"))
             data += b'\x00'
             if self.remoteServer.send(data) == False:
                 self.fd.close()
-                print("[+] [REALM] Client " + self.ip + ":" + self.port + " disconnected")
+                Logger.info("[REALM] Client " + self.ip + ":" + self.port + " disconnected")
                 return (False)
             newPacket = self.parser.getPacket()
         return (True)
@@ -48,4 +49,4 @@ class RealmLocalClient(Thread):
                 return (False)
             recvData = self.fd.recv(4096)
         self.connected = False
-        print("[+] [REALM] Client " + self.ip + ":" + self.port + " disconnected")
+        Logger.info("[REALM] Client " + self.ip + ":" + self.port + " disconnected")
